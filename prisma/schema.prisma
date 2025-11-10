@@ -1,0 +1,37 @@
+// Prisma schema
+// Run: npx prisma generate && npx prisma migrate dev --name init (for local dev)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(uuid())
+  email        String         @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  tokens       RefreshToken[]
+}
+
+model RefreshToken {
+  id                 String   @id @default(uuid())
+  jti                String   @unique
+  tokenHash          String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId             String
+  createdAt          DateTime @default(now())
+  createdByIp        String?
+  revoked            Boolean  @default(false)
+  revokedAt          DateTime?
+  replacedByTokenJti String?
+  expiresAt          DateTime
+
+  @@index([userId])
+}

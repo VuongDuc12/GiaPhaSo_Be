@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: giaphaso_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: giaphaso_dev
+    ports:
+      - "5433:5432" # host:container (use 5433 on host to avoid conflicts)
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    container_name: giaphaso_api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/giaphaso_dev?schema=public
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-insecure_access}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-insecure_refresh}
+      JWT_ACCESS_EXPIRES: ${JWT_ACCESS_EXPIRES:-15m}
+      JWT_REFRESH_EXPIRES: ${JWT_REFRESH_EXPIRES:-7d}
+      BCRYPT_SALT_ROUNDS: ${BCRYPT_SALT_ROUNDS:-12}
+    ports:
+      - "4000:4000"
+    command: sh -c "npx prisma migrate deploy && node src/server.js"
+    restart: unless-stopped
+volumes:
+  pgdata:

@@ -1,0 +1,28 @@
+# Node
+node_modules/
+.npm/
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test.example
+
+# Logs
+logs/
+*.log
+
+# Coverage
+coverage/
+
+# Prisma
+prisma/.env
+
+# Docker
+.docker/
+.tmp/
+
+# OS/Editor
+.DS_Store
+Thumbs.db
+.vscode/
